@@ -1,0 +1,69 @@
+apiVersion: gelimer.zzzinho.busan/v1alpha1
+kind: LLM
+metadata:
+  labels:
+    app.kubernetes.io/name: gelimer
+    app.kubernetes.io/managed-by: kustomize
+  name: llm-sample
+spec:
+  model: "naver-hyperclovax/HyperCLOVAX-SEED-Text-Instruct-1.5B"
+  runtime: vLLM
+  replicas: 1
+  image: "vllm/vllm-openai:latest"
+  imagePullPolicy: IfNotPresent
+  port: 8000
+  resources:
+    limits:
+      cpu: "4"
+      memory: "16Gi"
+      nvidia.com/gpu: "1"
+    requests:
+      cpu: "2"
+      memory: "8Gi"
+      nvidia.com/gpu: "1"
+  runtimeConfig:
+    vLLM:
+      # 모델 설정 (선택적)
+      model:
+        task: generate
+        trustRemoteCode: true
+        maxModelLen: 4096
+
+      # 로딩 설정 (선택적)
+      load:
+        loadFormat: auto
+        dtype: auto
+        device: auto
+
+      # 병렬 처리 설정 (선택적)
+      parallel:
+        tensorParallelSize: 1
+
+      # 캐시 설정 (선택적)
+      cache:
+        gpuMemoryUtilization: "0.9"
+        blockSize: 16
+
+      # 스케줄러 설정 (선택적)
+      scheduler:
+        maxNumSeqs: 256
+        maxPaddings: 256
+        preemptionMode: recompute
+
+      # 추가 vLLM 인수 (선택적)
+      extraArgs:
+        log-level: "INFO"
+        disable-log-stats: "false"
+
+  env:
+    - name: HF_TOKEN
+      value: "your-huggingface-token"
+
+  volumeMounts:
+    - name: model-cache
+      mountPath: /root/.cache/huggingface
+      readOnly: false
+
+  volumes:
+    - name: model-cache
+      emptyDir: {}
