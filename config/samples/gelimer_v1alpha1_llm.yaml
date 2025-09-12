@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: llm-sample
 spec:
-  model: "naver-hyperclovax/HyperCLOVAX-SEED-Text-Instruct-1.5B"
+  model: "Qwen/Qwen3-0.6B"
   runtime: vLLM
   replicas: 1
   image: "vllm/vllm-openai:latest"
