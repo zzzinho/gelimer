@@ -18,7 +18,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,16 +25,15 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	gelimerv1alpha1 "zzzinho.busan/api/v1alpha1"
-	reconciler "zzzinho.busan/internal/reconciler/llm"
+	reconciler "zzzinho.busan/internal/controller/v1alpha1/llm"
 )
 
 const containerName = "model-container"
 
-// LLMReconciler reconciles a LLM object
-type LLMReconciler struct {
+type GelimerReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	handlers map[gelimerv1alpha1.RuntimeType]reconciler.RuntimeHandler
+	Scheme        *runtime.Scheme
+	llmReconciler *reconciler.LLMReconciler
 }
 
 // +kubebuilder:rbac:groups=gelimer.zzzinho.busan,resources=llms,verbs=get;list;watch;create;update;patch;delete
@@ -51,27 +49,16 @@ type LLMReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
-func (r *LLMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *GelimerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logf.FromContext(ctx)
 
 	logger.Info("Reconciling LLM")
 
-	llm := &gelimerv1alpha1.LLM{}
-
-	if err := r.Get(ctx, req.NamespacedName, llm); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-
-	logger.Info("LLM", "name", llm.Name)
-	handler, ok := r.handlers[llm.Spec.Runtime]
-	if !ok {
-		return ctrl.Result{}, fmt.Errorf("unknown runtime: %s", llm.Spec.Runtime)
-	}
-	return handler.Do(ctx, llm)
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *LLMReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *GelimerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&gelimerv1alpha1.LLM{}).
 		Named("llm").
