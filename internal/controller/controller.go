@@ -36,6 +36,17 @@ type GelimerReconciler struct {
 	llmReconciler *reconciler.LLMReconciler
 }
 
+func New(client client.Client, scheme *runtime.Scheme) *GelimerReconciler {
+	return &GelimerReconciler{
+		Client: client,
+		Scheme: scheme,
+		llmReconciler: &reconciler.LLMReconciler{
+			Client: client,
+			Scheme: scheme,
+		},
+	}
+}
+
 // +kubebuilder:rbac:groups=gelimer.zzzinho.busan,resources=llms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=gelimer.zzzinho.busan,resources=llms/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=gelimer.zzzinho.busan,resources=llms/finalizers,verbs=update
@@ -51,9 +62,13 @@ type GelimerReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *GelimerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logf.FromContext(ctx)
-
 	logger.Info("Reconciling LLM")
 
+	llm := &gelimerv1alpha1.LLM{}
+	if err := r.Get(ctx, req.NamespacedName, llm); err == nil {
+		logger.Info("Reconciling LLM", "name", llm.Name, "namespace", llm.Namespace)
+		return r.llmReconciler.Reconcile(ctx, llm)
+	}
 	return ctrl.Result{}, nil
 }
 

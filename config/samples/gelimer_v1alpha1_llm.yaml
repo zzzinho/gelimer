@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: llm-sample
 spec:
-  model: "Qwen/Qwen3-0.6B"
+  model: "google/gemma-3-270m"
   runtime: vLLM
   replicas: 1
   image: "vllm/vllm-openai:latest"

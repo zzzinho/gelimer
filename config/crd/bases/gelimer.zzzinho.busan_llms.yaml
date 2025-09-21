@@ -506,6 +506,8 @@ spec:
                         type: object
                     type: object
                 type: object
+              serviceAccountName:
+                type: string
               volumeMounts:
                 items:
                   description: VolumeMount describes a mounting of a Volume within
@@ -2364,6 +2366,8 @@ spec:
           status:
             description: LLMStatus defines the observed state of LLM.
             properties:
+              message:
+                type: string
               status:
                 type: string
             type: object
