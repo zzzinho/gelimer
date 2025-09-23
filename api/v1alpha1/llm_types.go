@@ -250,10 +250,6 @@ type SchedulerConfig struct {
 	// +optional
 	MaxNumBatchedTokens *int32 `json:"maxNumBatchedTokens,omitempty"`
 
-	// Maximum number of padding tokens
-	// +kubebuilder:default=256
-	MaxPaddings int32 `json:"maxPaddings,omitempty"`
-
 	// Enable chunked prefill
 	// +optional
 	EnableChunkedPrefill *bool `json:"enableChunkedPrefill,omitempty"`

@@ -308,10 +308,6 @@ func (r *VLLMReconciler) buildSchedulerConfigArgs(config *gelimerv1alpha1.Schedu
 		args = append(args, "--max-num-batched-tokens", strconv.Itoa(int(*config.MaxNumBatchedTokens)))
 	}
 
-	if config.MaxPaddings != 256 {
-		args = append(args, "--max-paddings", strconv.Itoa(int(config.MaxPaddings)))
-	}
-
 	if config.EnableChunkedPrefill != nil && *config.EnableChunkedPrefill {
 		args = append(args, "--enable-chunked-prefill")
 	}

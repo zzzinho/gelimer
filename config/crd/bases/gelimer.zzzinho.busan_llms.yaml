@@ -491,11 +491,6 @@ spec:
                             description: Maximum number of sequences in a batch
                             format: int32
                             type: integer
-                          maxPaddings:
-                            default: 256
-                            description: Maximum number of padding tokens
-                            format: int32
-                            type: integer
                           preemptionMode:
                             default: recompute
                             description: Preemption mode

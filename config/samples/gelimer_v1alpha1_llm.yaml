@@ -45,15 +45,10 @@ spec:
         blockSize: 16
 
       # 스케줄러 설정 (선택적)
-      scheduler:
-        maxNumSeqs: 256
-        maxPaddings: 256
-        preemptionMode: recompute
+      scheduler: {}
 
       # 추가 vLLM 인수 (선택적)
-      extraArgs:
-        log-level: "INFO"
-        disable-log-stats: "false"
+      extraArgs: {}
 
   env:
     - name: HF_TOKEN
