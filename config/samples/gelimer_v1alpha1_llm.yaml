@@ -23,32 +23,17 @@ spec:
       nvidia.com/gpu: "1"
   runtimeConfig:
     vLLM:
-      # 모델 설정 (선택적)
-      model:
-        task: generate
-        trustRemoteCode: true
-        maxModelLen: 4096
-
-      # 로딩 설정 (선택적)
-      load:
-        loadFormat: auto
-        dtype: auto
-        device: auto
-
-      # 병렬 처리 설정 (선택적)
-      parallel:
-        tensorParallelSize: 1
-
-      # 캐시 설정 (선택적)
-      cache:
-        gpuMemoryUtilization: "0.9"
-        blockSize: 16
-
-      # 스케줄러 설정 (선택적)
-      scheduler: {}
-
-      # 추가 vLLM 인수 (선택적)
-      extraArgs: {}
+      # vLLM 실행 인수 (선택적)
+      args:
+        - "--trust-remote-code"
+        - "--max-model-len"
+        - "4096"
+        - "--tensor-parallel-size"
+        - "1"
+        - "--gpu-memory-utilization"
+        - "0.9"
+        - "--block-size"
+        - "16"
 
   env:
     - name: HF_TOKEN

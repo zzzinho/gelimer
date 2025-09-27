@@ -25,7 +25,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	gelimerv1alpha1 "zzzinho.busan/api/v1alpha1"
-	reconciler "zzzinho.busan/internal/controller/v1alpha1/llm"
+	reconciler "zzzinho.busan/internal/controller/llm"
 )
 
 type GelimerReconciler struct {
