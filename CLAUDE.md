@@ -120,6 +120,29 @@ Claude는 모든 상호작용에서 한국어를 우선적으로 사용해야 �
 5. **테스트 케이스**: 테스트 이름과 설명은 한국어로 작성하여 의도를 명확히 표현
 6. **커밋 메시지**: Git 커밋 메시지는 한국어로 작성
 
+#### 커밋 메시지 작성 규칙
+
+**⚠️ 중요: 커밋 메시지에는 다음 문구들을 포함하지 않습니다:**
+- "Generated with [Claude Code](https://claude.ai/code)"
+- "Co-Authored-By: Claude <noreply@anthropic.com>"
+- 기타 Claude 관련 자동 생성 문구
+
+**커밋 메시지 형식**:
+```
+<type>(scope): <subject>
+
+<body>
+```
+
+**예시**:
+```
+refactor(api): vLLM 설정을 args 기반으로 단순화
+
+- VLLMConfig의 복잡한 중첩 구조체 제거
+- Command와 Args 배열 기반의 단순한 설정 방식으로 변경
+- vLLM 버전 의존성 문제 해결 및 유지보수성 향상
+```
+
 #### 예외 사항
 
 1. **코드 식별자**: 변수명, 함수명, 타입명, 패키지명은 영어로 유지 (Go 언어 관례 준수)
