@@ -28,20 +28,18 @@ import (
 	reconciler "zzzinho.busan/internal/controller/v1alpha1/llm"
 )
 
-const containerName = "model-container"
-
 type GelimerReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
 	llmReconciler *reconciler.LLMReconciler
 }
 
-func New(client client.Client, scheme *runtime.Scheme) *GelimerReconciler {
+func New(c client.Client, scheme *runtime.Scheme) *GelimerReconciler {
 	return &GelimerReconciler{
-		Client: client,
+		Client: c,
 		Scheme: scheme,
 		llmReconciler: &reconciler.LLMReconciler{
-			Client: client,
+			Client: c,
 			Scheme: scheme,
 		},
 	}
