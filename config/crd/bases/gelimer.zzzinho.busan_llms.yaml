@@ -236,269 +236,34 @@ spec:
               runtimeConfig:
                 properties:
                   custom:
+                    description: 커스텀 런타임 설정
                     properties:
                       args:
+                        description: 명령어에 전달할 인수들
                         items:
                           type: string
                         type: array
                       command:
+                        description: 실행할 명령어
                         items:
                           type: string
                         type: array
-                      config:
-                        additionalProperties:
-                          type: string
-                        type: object
                     type: object
                   vLLM:
-                    description: |-
-                      vLLM Config
-                      https://docs.vllm.ai/en/stable/cli/index.html#serve
+                    description: vLLM 런타임 인수들
                     properties:
-                      cache:
-                        description: Cache configuration
-                        properties:
-                          blockSize:
-                            default: 16
-                            description: Block size for paged attention
-                            format: int32
-                            type: integer
-                          gpuMemoryUtilization:
-                            default: "0.9"
-                            description: GPU memory utilization for KV cache
-                            type: string
-                          kvCacheDtype:
-                            default: auto
-                            description: Data type for KV cache storage
-                            enum:
-                            - auto
-                            - fp8
-                            - fp8_e5m2
-                            - fp8_e4m3
-                            type: string
-                          swapSpace:
-                            description: Swap space for KV cache (in GiB)
-                            format: int32
-                            type: integer
-                        type: object
-                      decoding:
-                        description: Decoding configuration
-                        properties:
-                          disableSlidingWindow:
-                            description: Disable sliding window attention
-                            type: boolean
-                          guidedDecodingBackend:
-                            default: outlines
-                            description: Guided decoding backend
-                            enum:
-                            - outlines
-                            - lm-format-enforcer
-                            type: string
-                          maxLogprobs:
-                            description: Maximum number of log probabilities to return
-                              per output token
-                            format: int32
-                            type: integer
-                        type: object
-                      extraArgs:
-                        additionalProperties:
+                      args:
+                        description: |-
+                          vLLM serve에 전달될 모든 인수들
+                          예: ["--tensor-parallel-size", "2", "--max-model-len", "4096"]
+                        items:
                           type: string
-                        description: Additional vLLM serve arguments as key-value
-                          pairs
-                        type: object
-                      load:
-                        description: Load configuration
-                        properties:
-                          device:
-                            default: auto
-                            description: Device type for vLLM execution
-                            enum:
-                            - auto
-                            - cuda
-                            - neuron
-                            - cpu
-                            - openvino
-                            - tpu
-                            - xpu
-                            type: string
-                          downloadDir:
-                            description: Download directory for cached weights and
-                              files
-                            type: string
-                          dtype:
-                            default: auto
-                            description: Data type for model weights and activations
-                            enum:
-                            - auto
-                            - half
-                            - float16
-                            - bfloat16
-                            - float
-                            - float32
-                            type: string
-                          loadFormat:
-                            default: auto
-                            description: Load format of the model weights
-                            enum:
-                            - auto
-                            - pt
-                            - safetensors
-                            - npcache
-                            - dummy
-                            - tensorizer
-                            - sharded_state
-                            - gguf
-                            - bitsandbytes
-                            - mistral
-                            type: string
-                          quantizationMethod:
-                            description: Quantization method
-                            enum:
-                            - aqlm
-                            - awq
-                            - deepspeedfp
-                            - tpu_int8
-                            - fp8
-                            - fbgemm_fp8
-                            - modelopt
-                            - marlin
-                            - gguf
-                            - gptq_marlin_24
-                            - gptq_marlin
-                            - awq_marlin
-                            - gptq
-                            - squeezellm
-                            - compressed-tensors
-                            - bitsandbytes
-                            - qqq
-                            - experts_int8
-                            - neuron_quant
-                            - ipex
-                            type: string
-                        type: object
-                      lora:
-                        description: LoRA configuration
-                        properties:
-                          loraDtype:
-                            default: auto
-                            description: LoRA dtype
-                            enum:
-                            - auto
-                            - float16
-                            - bfloat16
-                            - float32
-                            type: string
-                          loraModules:
-                            description: LoRA modules
-                            items:
-                              description: LoraModule represents a LoRA module configuration
-                              properties:
-                                baseModelName:
-                                  type: string
-                                name:
-                                  type: string
-                                path:
-                                  type: string
-                              required:
-                              - name
-                              - path
-                              type: object
-                            type: array
-                          maxLoraRank:
-                            default: 16
-                            description: Maximum LoRA rank
-                            format: int32
-                            type: integer
-                          maxLoras:
-                            default: 1
-                            description: Maximum LoRAs
-                            format: int32
-                            type: integer
-                        type: object
-                      model:
-                        description: Model configuration (optional, can use default
-                          model from LLMSpec)
-                        properties:
-                          maxModelLen:
-                            description: Maximum model sequence length
-                            format: int32
-                            type: integer
-                          task:
-                            default: auto
-                            description: Task type for the model
-                            enum:
-                            - auto
-                            - classify
-                            - draft
-                            - embed
-                            - embedding
-                            - generate
-                            - reward
-                            - score
-                            - transcription
-                            type: string
-                          tokenizer:
-                            description: Tokenizer name or path (if different from
-                              model)
-                            type: string
-                          tokenizerMode:
-                            default: auto
-                            description: Tokenizer mode
-                            enum:
-                            - auto
-                            - slow
-                            - fast
-                            type: string
-                          trustRemoteCode:
-                            description: Trust remote code
-                            type: boolean
-                        type: object
-                      parallel:
-                        description: Parallel configuration
-                        properties:
-                          distributedExecutorBackend:
-                            description: Distributed executor backend
-                            enum:
-                            - ray
-                            - mp
-                            type: string
-                          pipelineParallelSize:
-                            default: 1
-                            description: Pipeline parallel size
-                            format: int32
-                            type: integer
-                          tensorParallelSize:
-                            default: 1
-                            description: Tensor parallel size
-                            format: int32
-                            type: integer
-                          workerUseRay:
-                            description: Worker use Ray for distributed serving
-                            type: boolean
-                        type: object
-                      scheduler:
-                        description: Scheduler configuration
-                        properties:
-                          enableChunkedPrefill:
-                            description: Enable chunked prefill
-                            type: boolean
-                          maxNumBatchedTokens:
-                            description: Maximum number of batched tokens
-                            format: int32
-                            type: integer
-                          maxNumSeqs:
-                            default: 256
-                            description: Maximum number of sequences in a batch
-                            format: int32
-                            type: integer
-                          preemptionMode:
-                            default: recompute
-                            description: Preemption mode
-                            enum:
-                            - swap
-                            - recompute
-                            type: string
-                        type: object
+                        type: array
+                      command:
+                        description: 'vLLM 서브명령어 (기본값: ["vllm", "serve"])'
+                        items:
+                          type: string
+                        type: array
                     type: object
                 type: object
               serviceAccountName:

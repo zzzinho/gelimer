@@ -69,212 +69,36 @@ type LLMSpec struct {
 }
 
 type RuntimeConfig struct {
+	// vLLM 런타임 인수들
 	// +optional
 	VLLM *VLLMConfig `json:"vLLM,omitempty"`
 
+	// 커스텀 런타임 설정
 	// +optional
 	Custom *CustomConfig `json:"custom,omitempty"`
 }
 
-// vLLM Config
+// VLLMConfig는 vLLM 런타임의 명령줄 인수를 설정합니다
 // https://docs.vllm.ai/en/stable/cli/index.html#serve
 type VLLMConfig struct {
-	// Model configuration (optional, can use default model from LLMSpec)
-	// +optional
-	Model *ModelConfig `json:"model,omitempty"`
-
-	// Load configuration
-	// +optional
-	Load *LoadConfig `json:"load,omitempty"`
-
-	// Decoding configuration
-	// +optional
-	Decoding *DecodingConfig `json:"decoding,omitempty"`
-
-	// Parallel configuration
-	// +optional
-	Parallel *ParallelConfig `json:"parallel,omitempty"`
-
-	// Cache configuration
-	// +optional
-	Cache *CacheConfig `json:"cache,omitempty"`
-
-	// LoRA configuration
-	// +optional
-	LoRA *LoRAConfig `json:"lora,omitempty"`
-
-	// Scheduler configuration
-	// +optional
-	Scheduler *SchedulerConfig `json:"scheduler,omitempty"`
-
-	// Additional vLLM serve arguments as key-value pairs
-	// +optional
-	ExtraArgs map[string]string `json:"extraArgs,omitempty"`
-}
-
-// ModelConfig contains essential vLLM model configuration options
-type ModelConfig struct {
-	// Task type for the model
-	// +kubebuilder:validation:Enum=auto;classify;draft;embed;embedding;generate;reward;score;transcription
-	// +kubebuilder:default=auto
-	Task string `json:"task,omitempty"`
-
-	// Tokenizer name or path (if different from model)
-	// +optional
-	Tokenizer *string `json:"tokenizer,omitempty"`
-
-	// Tokenizer mode
-	// +kubebuilder:validation:Enum=auto;slow;fast
-	// +kubebuilder:default=auto
-	TokenizerMode string `json:"tokenizerMode,omitempty"`
-
-	// Trust remote code
-	// +optional
-	TrustRemoteCode *bool `json:"trustRemoteCode,omitempty"`
-
-	// Maximum model sequence length
-	// +optional
-	MaxModelLen *int32 `json:"maxModelLen,omitempty"`
-}
-
-// LoadConfig contains model loading configuration
-type LoadConfig struct {
-	// Download directory for cached weights and files
-	// +optional
-	DownloadDir *string `json:"downloadDir,omitempty"`
-
-	// Load format of the model weights
-	// +kubebuilder:validation:Enum=auto;pt;safetensors;npcache;dummy;tensorizer;sharded_state;gguf;bitsandbytes;mistral
-	// +kubebuilder:default=auto
-	LoadFormat string `json:"loadFormat,omitempty"`
-
-	// Data type for model weights and activations
-	// +kubebuilder:validation:Enum=auto;half;float16;bfloat16;float;float32
-	// +kubebuilder:default=auto
-	Dtype string `json:"dtype,omitempty"`
-
-	// Quantization method
-	// +kubebuilder:validation:Enum=aqlm;awq;deepspeedfp;tpu_int8;fp8;fbgemm_fp8;modelopt;marlin;gguf;gptq_marlin_24;gptq_marlin;awq_marlin;gptq;squeezellm;compressed-tensors;bitsandbytes;qqq;experts_int8;neuron_quant;ipex
-	// +optional
-	QuantizationMethod *string `json:"quantizationMethod,omitempty"`
-
-	// Device type for vLLM execution
-	// +kubebuilder:validation:Enum=auto;cuda;neuron;cpu;openvino;tpu;xpu
-	// +kubebuilder:default=auto
-	Device string `json:"device,omitempty"`
-}
-
-// DecodingConfig contains decoding configuration
-type DecodingConfig struct {
-	// Guided decoding backend
-	// +kubebuilder:validation:Enum=outlines;lm-format-enforcer
-	// +kubebuilder:default=outlines
-	GuidedDecodingBackend string `json:"guidedDecodingBackend,omitempty"`
-
-	// Maximum number of log probabilities to return per output token
-	// +optional
-	MaxLogprobs *int32 `json:"maxLogprobs,omitempty"`
-
-	// Disable sliding window attention
-	// +optional
-	DisableSlidingWindow *bool `json:"disableSlidingWindow,omitempty"`
-}
-
-// ParallelConfig contains parallel processing configuration
-type ParallelConfig struct {
-	// Tensor parallel size
-	// +kubebuilder:default=1
-	TensorParallelSize int32 `json:"tensorParallelSize,omitempty"`
-
-	// Pipeline parallel size
-	// +kubebuilder:default=1
-	PipelineParallelSize int32 `json:"pipelineParallelSize,omitempty"`
-
-	// Distributed executor backend
-	// +kubebuilder:validation:Enum=ray;mp
-	// +optional
-	DistributedExecutorBackend *string `json:"distributedExecutorBackend,omitempty"`
-
-	// Worker use Ray for distributed serving
-	// +optional
-	WorkerUseRay *bool `json:"workerUseRay,omitempty"`
-}
-
-// CacheConfig contains KV cache configuration
-type CacheConfig struct {
-	// Data type for KV cache storage
-	// +kubebuilder:validation:Enum=auto;fp8;fp8_e5m2;fp8_e4m3
-	// +kubebuilder:default=auto
-	KvCacheDtype string `json:"kvCacheDtype,omitempty"`
-
-	// GPU memory utilization for KV cache
-	// +kubebuilder:default="0.9"
-	GpuMemoryUtilization string `json:"gpuMemoryUtilization,omitempty"`
-
-	// Swap space for KV cache (in GiB)
-	// +optional
-	SwapSpace *int32 `json:"swapSpace,omitempty"`
-
-	// Block size for paged attention
-	// +kubebuilder:default=16
-	BlockSize int32 `json:"blockSize,omitempty"`
-}
-
-// LoRAConfig contains LoRA configuration
-type LoRAConfig struct {
-	// LoRA modules
-	// +optional
-	LoraModules []LoraModule `json:"loraModules,omitempty"`
-
-	// Maximum LoRAs
-	// +kubebuilder:default=1
-	MaxLoras int32 `json:"maxLoras,omitempty"`
-
-	// Maximum LoRA rank
-	// +kubebuilder:default=16
-	MaxLoraRank int32 `json:"maxLoraRank,omitempty"`
-
-	// LoRA dtype
-	// +kubebuilder:validation:Enum=auto;float16;bfloat16;float32
-	// +kubebuilder:default=auto
-	LoraDtype string `json:"loraDtype,omitempty"`
-}
-
-// SchedulerConfig contains scheduler configuration
-type SchedulerConfig struct {
-	// Maximum number of sequences in a batch
-	// +kubebuilder:default=256
-	MaxNumSeqs int32 `json:"maxNumSeqs,omitempty"`
-
-	// Maximum number of batched tokens
-	// +optional
-	MaxNumBatchedTokens *int32 `json:"maxNumBatchedTokens,omitempty"`
-
-	// Enable chunked prefill
-	// +optional
-	EnableChunkedPrefill *bool `json:"enableChunkedPrefill,omitempty"`
-
-	// Preemption mode
-	// +kubebuilder:validation:Enum=swap;recompute
-	// +kubebuilder:default=recompute
-	PreemptionMode string `json:"preemptionMode,omitempty"`
-}
-
-// LoraModule represents a LoRA module configuration
-type LoraModule struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
-	// +optional
-	BaseModelName *string `json:"baseModelName,omitempty"`
-}
-
-type CustomConfig struct {
+	// vLLM 서브명령어 (기본값: ["vllm", "serve"])
 	// +optional
 	Command []string `json:"command,omitempty"`
+
+	// vLLM serve에 전달될 모든 인수들
+	// 예: ["--tensor-parallel-size", "2", "--max-model-len", "4096"]
 	// +optional
 	Args []string `json:"args,omitempty"`
+}
+
+// CustomConfig는 사용자 정의 런타임 설정을 제공합니다
+type CustomConfig struct {
+	// 실행할 명령어
 	// +optional
-	Config map[string]string `json:"config,omitempty"`
+	Command []string `json:"command,omitempty"`
+	// 명령어에 전달할 인수들
+	// +optional
+	Args []string `json:"args,omitempty"`
 }
 
 // LLMStatus defines the observed state of LLM.

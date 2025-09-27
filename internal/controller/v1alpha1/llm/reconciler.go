@@ -22,7 +22,6 @@ import (
 
 const (
 	containerName = "model-container"
-	vllmPort      = 8000
 )
 
 type LLMReconciler struct {
@@ -303,150 +302,18 @@ func (r *LLMReconciler) buildVLLMService(llm *gelimerv1alpha1.LLM) *corev1.Servi
 	return service
 }
 
-// buildVLLMArgs builds the arguments for vLLM container
+// buildVLLMArgs는 vLLM 컨테이너의 인수를 생성합니다
 func (r *LLMReconciler) buildVLLMArgs(llm *gelimerv1alpha1.LLM) []string {
+	// 기본 vLLM 인수
 	args := []string{
 		"--model", llm.Spec.Model,
 		"--host", "0.0.0.0",
 		"--port", strconv.Itoa(int(llm.Spec.Port)),
 	}
 
-	// Add vLLM specific configuration if provided
-	if llm.Spec.RuntimeConfig.VLLM != nil {
-		vllmConfig := llm.Spec.RuntimeConfig.VLLM
-
-		// Model configuration
-		if vllmConfig.Model != nil {
-			if vllmConfig.Model.Task != "" && vllmConfig.Model.Task != "auto" {
-				args = append(args, "--task", vllmConfig.Model.Task)
-			}
-			if vllmConfig.Model.Tokenizer != nil {
-				args = append(args, "--tokenizer", *vllmConfig.Model.Tokenizer)
-			}
-			if vllmConfig.Model.TokenizerMode != "" && vllmConfig.Model.TokenizerMode != "auto" {
-				args = append(args, "--tokenizer-mode", vllmConfig.Model.TokenizerMode)
-			}
-			if vllmConfig.Model.TrustRemoteCode != nil && *vllmConfig.Model.TrustRemoteCode {
-				args = append(args, "--trust-remote-code")
-			}
-			if vllmConfig.Model.MaxModelLen != nil {
-				args = append(args, "--max-model-len", strconv.Itoa(int(*vllmConfig.Model.MaxModelLen)))
-			}
-		}
-
-		// Load configuration
-		if vllmConfig.Load != nil {
-			if vllmConfig.Load.DownloadDir != nil {
-				args = append(args, "--download-dir", *vllmConfig.Load.DownloadDir)
-			}
-			if vllmConfig.Load.LoadFormat != "" && vllmConfig.Load.LoadFormat != "auto" {
-				args = append(args, "--load-format", vllmConfig.Load.LoadFormat)
-			}
-			if vllmConfig.Load.Dtype != "" && vllmConfig.Load.Dtype != "auto" {
-				args = append(args, "--dtype", vllmConfig.Load.Dtype)
-			}
-			if vllmConfig.Load.QuantizationMethod != nil {
-				args = append(args, "--quantization", *vllmConfig.Load.QuantizationMethod)
-			}
-			if vllmConfig.Load.Device != "" && vllmConfig.Load.Device != "auto" {
-				args = append(args, "--device", vllmConfig.Load.Device)
-			}
-		}
-
-		// Decoding configuration
-		if vllmConfig.Decoding != nil {
-			if vllmConfig.Decoding.GuidedDecodingBackend != "" {
-				args = append(args, "--guided-decoding-backend", vllmConfig.Decoding.GuidedDecodingBackend)
-			}
-			if vllmConfig.Decoding.MaxLogprobs != nil {
-				args = append(args, "--max-logprobs", strconv.Itoa(int(*vllmConfig.Decoding.MaxLogprobs)))
-			}
-			if vllmConfig.Decoding.DisableSlidingWindow != nil && *vllmConfig.Decoding.DisableSlidingWindow {
-				args = append(args, "--disable-sliding-window")
-			}
-		}
-
-		// Parallel configuration
-		if vllmConfig.Parallel != nil {
-			if vllmConfig.Parallel.TensorParallelSize > 1 {
-				args = append(args, "--tensor-parallel-size", strconv.Itoa(int(vllmConfig.Parallel.TensorParallelSize)))
-			}
-			if vllmConfig.Parallel.PipelineParallelSize > 1 {
-				args = append(args, "--pipeline-parallel-size", strconv.Itoa(int(vllmConfig.Parallel.PipelineParallelSize)))
-			}
-			if vllmConfig.Parallel.DistributedExecutorBackend != nil {
-				args = append(args, "--distributed-executor-backend", *vllmConfig.Parallel.DistributedExecutorBackend)
-			}
-			if vllmConfig.Parallel.WorkerUseRay != nil && *vllmConfig.Parallel.WorkerUseRay {
-				args = append(args, "--worker-use-ray")
-			}
-		}
-
-		// Cache configuration
-		if vllmConfig.Cache != nil {
-			if vllmConfig.Cache.KvCacheDtype != "" && vllmConfig.Cache.KvCacheDtype != "auto" {
-				args = append(args, "--kv-cache-dtype", vllmConfig.Cache.KvCacheDtype)
-			}
-			if vllmConfig.Cache.GpuMemoryUtilization != "" {
-				args = append(args, "--gpu-memory-utilization", vllmConfig.Cache.GpuMemoryUtilization)
-			}
-			if vllmConfig.Cache.SwapSpace != nil {
-				args = append(args, "--swap-space", strconv.Itoa(int(*vllmConfig.Cache.SwapSpace)))
-			}
-			if vllmConfig.Cache.BlockSize > 0 {
-				args = append(args, "--block-size", strconv.Itoa(int(vllmConfig.Cache.BlockSize)))
-			}
-		}
-
-		// LoRA configuration
-		if vllmConfig.LoRA != nil {
-			if len(vllmConfig.LoRA.LoraModules) > 0 {
-				args = append(args, "--enable-lora")
-				for _, module := range vllmConfig.LoRA.LoraModules {
-					loraSpec := module.Name + "=" + module.Path
-					if module.BaseModelName != nil {
-						loraSpec += ":" + *module.BaseModelName
-					}
-					args = append(args, "--lora-modules", loraSpec)
-				}
-			}
-			if vllmConfig.LoRA.MaxLoras > 0 {
-				args = append(args, "--max-loras", strconv.Itoa(int(vllmConfig.LoRA.MaxLoras)))
-			}
-			if vllmConfig.LoRA.MaxLoraRank > 0 {
-				args = append(args, "--max-lora-rank", strconv.Itoa(int(vllmConfig.LoRA.MaxLoraRank)))
-			}
-			if vllmConfig.LoRA.LoraDtype != "" && vllmConfig.LoRA.LoraDtype != "auto" {
-				args = append(args, "--lora-dtype", vllmConfig.LoRA.LoraDtype)
-			}
-		}
-
-		// Scheduler configuration
-		if vllmConfig.Scheduler != nil {
-			if vllmConfig.Scheduler.MaxNumSeqs > 0 {
-				args = append(args, "--max-num-seqs", strconv.Itoa(int(vllmConfig.Scheduler.MaxNumSeqs)))
-			}
-			if vllmConfig.Scheduler.MaxNumBatchedTokens != nil {
-				args = append(args, "--max-num-batched-tokens", strconv.Itoa(int(*vllmConfig.Scheduler.MaxNumBatchedTokens)))
-			}
-			if vllmConfig.Scheduler.EnableChunkedPrefill != nil {
-				if *vllmConfig.Scheduler.EnableChunkedPrefill {
-					args = append(args, "--enable-chunked-prefill")
-				} else {
-					args = append(args, "--disable-chunked-prefill")
-				}
-			}
-			if vllmConfig.Scheduler.PreemptionMode != "" {
-				args = append(args, "--preemption-mode", vllmConfig.Scheduler.PreemptionMode)
-			}
-		}
-
-		// Extra arguments
-		if len(vllmConfig.ExtraArgs) > 0 {
-			for key, value := range vllmConfig.ExtraArgs {
-				args = append(args, "--"+key, value)
-			}
-		}
+	// vLLM 설정에서 추가 인수 처리
+	if llm.Spec.RuntimeConfig.VLLM != nil && len(llm.Spec.RuntimeConfig.VLLM.Args) > 0 {
+		args = append(args, llm.Spec.RuntimeConfig.VLLM.Args...)
 	}
 
 	return args
