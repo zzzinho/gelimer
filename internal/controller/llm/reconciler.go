@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	containerName = "model-container"
+	containerName    = "model-container"
+	llmFinalizerName = "gelimer.zzzinho.busan/llm-finalizer"
 )
 
 type LLMReconciler struct {
@@ -44,20 +45,41 @@ func (r *LLMReconciler) Reconcile(ctx context.Context, llm *gelimerv1alpha1.LLM)
 func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *gelimerv1alpha1.LLM) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
+	// Handle deletion with finalizer
 	if !llm.DeletionTimestamp.IsZero() {
-		log.Info("Deleting LLM", "namespace", llm.Namespace, "name", llm.Name)
+		if controllerutil.ContainsFinalizer(llm, llmFinalizerName) {
+			log.Info("Deleting LLM", "namespace", llm.Namespace, "name", llm.Name)
 
-		if err := r.updateStatus(ctx, llm, "Deleting", "Deleting LLM"); err != nil {
-			log.Error(err, "failed to update LLM status")
-			return ctrl.Result{}, err
+			if err := r.updateStatus(ctx, llm, "Deleting", "Deleting LLM resources"); err != nil {
+				log.Error(err, "failed to update LLM status")
+				return ctrl.Result{}, err
+			}
+
+			if err := r.cleanupResources(ctx, llm); err != nil {
+				log.Error(err, "failed to cleanup resources")
+				return ctrl.Result{}, err
+			}
+
+			// Remove finalizer to allow deletion
+			controllerutil.RemoveFinalizer(llm, llmFinalizerName)
+			if err := r.Update(ctx, llm); err != nil {
+				log.Error(err, "failed to remove finalizer")
+				return ctrl.Result{}, err
+			}
+			log.Info("Successfully cleaned up LLM resources", "namespace", llm.Namespace, "name", llm.Name)
 		}
-
-		if err := r.cleanupResources(ctx, llm); err != nil {
-			log.Error(err, "failed to cleanup resources")
-			return ctrl.Result{}, err
-		}
-
 		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer if not present
+	if !controllerutil.ContainsFinalizer(llm, llmFinalizerName) {
+		controllerutil.AddFinalizer(llm, llmFinalizerName)
+		if err := r.Update(ctx, llm); err != nil {
+			log.Error(err, "failed to add finalizer")
+			return ctrl.Result{}, err
+		}
+		log.Info("Added finalizer to LLM", "namespace", llm.Namespace, "name", llm.Name)
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	// Initialize status if empty
@@ -115,26 +137,45 @@ func (r *LLMReconciler) cleanupResources(ctx context.Context, llm *gelimerv1alph
 	log.Info("Cleaning up resources", "namespace", llm.Namespace, "name", llm.Name)
 
 	// Delete the Service
-	if err := r.Delete(ctx, &corev1.Service{
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      llm.Name,
 			Namespace: llm.Namespace,
 		},
-	}); err != nil {
+	}
+	if err := r.Delete(ctx, service); err != nil && !errors.IsNotFound(err) {
 		log.Error(err, "failed to delete Service")
 		return err
 	}
+	if err := r.Get(ctx, client.ObjectKeyFromObject(service), service); err == nil {
+		log.Info("Service still exists, waiting for deletion", "name", service.Name)
+		return fmt.Errorf("service %s still exists", service.Name)
+	} else if !errors.IsNotFound(err) {
+		log.Error(err, "failed to check Service deletion status")
+		return err
+	}
+	log.Info("Service successfully deleted", "name", llm.Name)
 
 	// Delete Deployment
-	if err := r.Delete(ctx, &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      llm.Name,
 			Namespace: llm.Namespace,
 		},
-	}); err != nil {
+	}
+	if err := r.Delete(ctx, deployment); err != nil && !errors.IsNotFound(err) {
 		log.Error(err, "failed to delete Deployment")
 		return err
 	}
+	if err := r.Get(ctx, client.ObjectKeyFromObject(deployment), deployment); err == nil {
+		log.Info("Deployment still exists, waiting for deletion", "name", deployment.Name)
+		return fmt.Errorf("deployment %s still exists", deployment.Name)
+	} else if !errors.IsNotFound(err) {
+		log.Error(err, "failed to check Deployment deletion status")
+		return err
+	}
+	log.Info("Deployment successfully deleted", "name", llm.Name)
+
 	return nil
 }
 
@@ -361,8 +402,8 @@ func (r *LLMReconciler) generateSpecHash(llm *gelimerv1alpha1.LLM) string {
 		Port               int32                         `json:"port"`
 		Replicas           int32                         `json:"replicas"`
 		Runtime            gelimerv1alpha1.RuntimeType   `json:"runtime"`
-		RuntimeConfig      gelimerv1alpha1.RuntimeConfig `json:"runtimeConfig,omitempty"`
-		Resources          corev1.ResourceRequirements   `json:"resources,omitempty"`
+		RuntimeConfig      gelimerv1alpha1.RuntimeConfig `json:"runtimeConfig"`
+		Resources          corev1.ResourceRequirements   `json:"resources"`
 		Env                []corev1.EnvVar               `json:"env,omitempty"`
 		VolumeMounts       []corev1.VolumeMount          `json:"volumeMounts,omitempty"`
 		Volumes            []corev1.Volume               `json:"volumes,omitempty"`
