@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package llm
 
 import (
 	"context"
@@ -25,20 +25,19 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
-	reconciler "zzzinho.busan/internal/controller/llm"
 )
 
-type GelimerReconciler struct {
+type LLMController struct {
 	client.Client
 	Scheme        *runtime.Scheme
-	llmReconciler *reconciler.LLMReconciler
+	llmReconciler *LLMReconciler
 }
 
-func New(c client.Client, scheme *runtime.Scheme) *GelimerReconciler {
-	return &GelimerReconciler{
+func New(c client.Client, scheme *runtime.Scheme) *LLMController {
+	return &LLMController{
 		Client: c,
 		Scheme: scheme,
-		llmReconciler: &reconciler.LLMReconciler{
+		llmReconciler: &LLMReconciler{
 			Client: c,
 			Scheme: scheme,
 		},
@@ -58,20 +57,20 @@ func New(c client.Client, scheme *runtime.Scheme) *GelimerReconciler {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
-func (r *GelimerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *LLMController) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logf.FromContext(ctx)
 	logger.Info("Reconciling LLM")
 
 	llm := &llmv1alpha1.LLM{}
 	if err := r.Get(ctx, req.NamespacedName, llm); err == nil {
 		logger.Info("Reconciling LLM", "name", llm.Name, "namespace", llm.Namespace)
-		return r.llmReconciler.Reconcile(ctx, llm)
+		return r.llmReconciler.Do(ctx, llm)
 	}
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *GelimerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *LLMController) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&llmv1alpha1.LLM{}).
 		Named("llm").

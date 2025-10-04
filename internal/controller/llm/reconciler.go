@@ -30,7 +30,7 @@ type LLMReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-func (r *LLMReconciler) Reconcile(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
+func (r *LLMReconciler) Do(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
 	logr := logf.FromContext(ctx)
 	logr.Info("Reconciling LLM", "name", llm.Name)
 

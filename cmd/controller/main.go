@@ -38,7 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
-	"zzzinho.busan/internal/controller"
+	llmcontroller "zzzinho.busan/internal/controller/llm"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -202,7 +202,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := (controller.New(mgr.GetClient(), mgr.GetScheme())).SetupWithManager(mgr); err != nil {
+	if err := (llmcontroller.New(mgr.GetClient(), mgr.GetScheme())).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "LLM")
 		os.Exit(1)
 	}
