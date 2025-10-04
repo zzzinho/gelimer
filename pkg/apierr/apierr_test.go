@@ -57,23 +57,23 @@ func TestAPIError_Error(t *testing.T) {
 
 func TestAPIError_StatusCode(t *testing.T) {
 	tests := []struct {
-		name       string
-		apiErr     *APIError
+		name           string
+		apiErr         *APIError
 		expectedStatus int
 	}{
 		{
-			name:       "not found",
-			apiErr:     NotFound,
+			name:           "not found",
+			apiErr:         NotFound,
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			name:       "bad request",
-			apiErr:     InvalidRequest,
+			name:           "bad request",
+			apiErr:         InvalidRequest,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:       "internal error",
-			apiErr:     InternalError,
+			name:           "internal error",
+			apiErr:         InternalError,
 			expectedStatus: http.StatusInternalServerError,
 		},
 	}
@@ -171,32 +171,32 @@ func TestAPIError_WithMessage(t *testing.T) {
 
 func TestIsAPIError(t *testing.T) {
 	tests := []struct {
-		name        string
-		err         error
+		name         string
+		err          error
 		expectAPIErr bool
 		expectedErr  *APIError
 	}{
 		{
-			name:        "valid API error",
-			err:         NotFound,
+			name:         "valid API error",
+			err:          NotFound,
 			expectAPIErr: true,
 			expectedErr:  NotFound,
 		},
 		{
-			name:        "custom message API error",
-			err:         NotFound.WithMessage("Custom"),
+			name:         "custom message API error",
+			err:          NotFound.WithMessage("Custom"),
 			expectAPIErr: true,
 			expectedErr:  NotFound.WithMessage("Custom"),
 		},
 		{
-			name:        "standard error",
-			err:         errors.New("standard error"),
+			name:         "standard error",
+			err:          errors.New("standard error"),
 			expectAPIErr: false,
 			expectedErr:  nil,
 		},
 		{
-			name:        "nil error",
-			err:         nil,
+			name:         "nil error",
+			err:          nil,
 			expectAPIErr: false,
 			expectedErr:  nil,
 		},

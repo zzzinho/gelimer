@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	gelimerv1alpha1 "zzzinho.busan/api/v1alpha1"
+	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
 )
 
 const (
@@ -30,19 +30,19 @@ type LLMReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-func (r *LLMReconciler) Reconcile(ctx context.Context, llm *gelimerv1alpha1.LLM) (ctrl.Result, error) {
+func (r *LLMReconciler) Reconcile(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
 	logr := logf.FromContext(ctx)
 	logr.Info("Reconciling LLM", "name", llm.Name)
 
 	switch llm.Spec.Runtime {
-	case gelimerv1alpha1.RuntimeTypeVLLM:
+	case llmv1alpha1.RuntimeTypeVLLM:
 		return r.handleVLLM(ctx, llm)
 	default:
 		return ctrl.Result{}, fmt.Errorf("unknown runtime: %s", llm.Spec.Runtime)
 	}
 }
 
-func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *gelimerv1alpha1.LLM) (ctrl.Result, error) {
+func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
 	// Handle deletion with finalizer
@@ -103,19 +103,19 @@ func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *gelimerv1alpha1.LLM
 	return ctrl.Result{}, nil
 }
 
-func (r *LLMReconciler) createOrUpdateResources(ctx context.Context, llm *gelimerv1alpha1.LLM) error {
+func (r *LLMReconciler) createOrUpdateResources(ctx context.Context, llm *llmv1alpha1.LLM) error {
 	log := logf.FromContext(ctx)
 	log.Info("Creating resources", "namespace", llm.Namespace, "name", llm.Name)
 
 	switch llm.Spec.Runtime {
-	case gelimerv1alpha1.RuntimeTypeVLLM:
+	case llmv1alpha1.RuntimeTypeVLLM:
 		return r.createOrUpdateVLLMResources(ctx, llm)
 	default:
 		return fmt.Errorf("unknown runtime: %s", llm.Spec.Runtime)
 	}
 }
 
-func (r *LLMReconciler) updateStatus(ctx context.Context, llm *gelimerv1alpha1.LLM, status, message string) error {
+func (r *LLMReconciler) updateStatus(ctx context.Context, llm *llmv1alpha1.LLM, status, message string) error {
 	log := logf.FromContext(ctx)
 
 	// Status 부분 업데이트를 위한 Patch 생성
@@ -132,7 +132,7 @@ func (r *LLMReconciler) updateStatus(ctx context.Context, llm *gelimerv1alpha1.L
 	return nil
 }
 
-func (r *LLMReconciler) cleanupResources(ctx context.Context, llm *gelimerv1alpha1.LLM) error {
+func (r *LLMReconciler) cleanupResources(ctx context.Context, llm *llmv1alpha1.LLM) error {
 	log := logf.FromContext(ctx)
 	log.Info("Cleaning up resources", "namespace", llm.Namespace, "name", llm.Name)
 
@@ -180,7 +180,7 @@ func (r *LLMReconciler) cleanupResources(ctx context.Context, llm *gelimerv1alph
 }
 
 // createOrUpdateVLLMResources creates or updates vLLM deployment and service
-func (r *LLMReconciler) createOrUpdateVLLMResources(ctx context.Context, llm *gelimerv1alpha1.LLM) error {
+func (r *LLMReconciler) createOrUpdateVLLMResources(ctx context.Context, llm *llmv1alpha1.LLM) error {
 	log := logf.FromContext(ctx)
 	log.Info("Creating or updating vLLM resources", "namespace", llm.Namespace, "name", llm.Name)
 
@@ -251,7 +251,7 @@ func (r *LLMReconciler) createOrUpdateVLLMResources(ctx context.Context, llm *ge
 }
 
 // buildVLLMDeployment builds the deployment spec for vLLM
-func (r *LLMReconciler) buildVLLMDeployment(llm *gelimerv1alpha1.LLM) *appsv1.Deployment {
+func (r *LLMReconciler) buildVLLMDeployment(llm *llmv1alpha1.LLM) *appsv1.Deployment {
 	labels := map[string]string{
 		"app":     llm.Name,
 		"llm":     llm.Name,
@@ -313,7 +313,7 @@ func (r *LLMReconciler) buildVLLMDeployment(llm *gelimerv1alpha1.LLM) *appsv1.De
 }
 
 // buildVLLMService builds the service spec for vLLM
-func (r *LLMReconciler) buildVLLMService(llm *gelimerv1alpha1.LLM) *corev1.Service {
+func (r *LLMReconciler) buildVLLMService(llm *llmv1alpha1.LLM) *corev1.Service {
 	labels := map[string]string{
 		"app":     llm.Name,
 		"llm":     llm.Name,
@@ -344,7 +344,7 @@ func (r *LLMReconciler) buildVLLMService(llm *gelimerv1alpha1.LLM) *corev1.Servi
 }
 
 // buildVLLMArgs는 vLLM 컨테이너의 인수를 생성합니다
-func (r *LLMReconciler) buildVLLMArgs(llm *gelimerv1alpha1.LLM) []string {
+func (r *LLMReconciler) buildVLLMArgs(llm *llmv1alpha1.LLM) []string {
 	// 기본 vLLM 인수
 	args := []string{
 		"--model", llm.Spec.Model,
@@ -361,7 +361,7 @@ func (r *LLMReconciler) buildVLLMArgs(llm *gelimerv1alpha1.LLM) []string {
 }
 
 // buildVLLMEnvVars builds environment variables for vLLM container
-func (r *LLMReconciler) buildVLLMEnvVars(llm *gelimerv1alpha1.LLM) []corev1.EnvVar {
+func (r *LLMReconciler) buildVLLMEnvVars(llm *llmv1alpha1.LLM) []corev1.EnvVar {
 	// Start with user-provided env vars
 	envVars := llm.Spec.Env
 	if envVars == nil {
@@ -394,21 +394,21 @@ func (r *LLMReconciler) buildVLLMEnvVars(llm *gelimerv1alpha1.LLM) []corev1.EnvV
 }
 
 // generateSpecHash generates a hash of the LLM spec for change detection
-func (r *LLMReconciler) generateSpecHash(llm *gelimerv1alpha1.LLM) string {
+func (r *LLMReconciler) generateSpecHash(llm *llmv1alpha1.LLM) string {
 	// Create a struct with only the relevant spec fields for hashing
 	specForHash := struct {
-		Image              string                        `json:"image"`
-		Model              string                        `json:"model"`
-		Port               int32                         `json:"port"`
-		Replicas           int32                         `json:"replicas"`
-		Runtime            gelimerv1alpha1.RuntimeType   `json:"runtime"`
-		RuntimeConfig      gelimerv1alpha1.RuntimeConfig `json:"runtimeConfig"`
-		Resources          corev1.ResourceRequirements   `json:"resources"`
-		Env                []corev1.EnvVar               `json:"env,omitempty"`
-		VolumeMounts       []corev1.VolumeMount          `json:"volumeMounts,omitempty"`
-		Volumes            []corev1.Volume               `json:"volumes,omitempty"`
-		ImagePullPolicy    corev1.PullPolicy             `json:"imagePullPolicy,omitempty"`
-		ServiceAccountName string                        `json:"serviceAccountName,omitempty"`
+		Image              string                      `json:"image"`
+		Model              string                      `json:"model"`
+		Port               int32                       `json:"port"`
+		Replicas           int32                       `json:"replicas"`
+		Runtime            llmv1alpha1.RuntimeType     `json:"runtime"`
+		RuntimeConfig      llmv1alpha1.RuntimeConfig   `json:"runtimeConfig"`
+		Resources          corev1.ResourceRequirements `json:"resources"`
+		Env                []corev1.EnvVar             `json:"env,omitempty"`
+		VolumeMounts       []corev1.VolumeMount        `json:"volumeMounts,omitempty"`
+		Volumes            []corev1.Volume             `json:"volumes,omitempty"`
+		ImagePullPolicy    corev1.PullPolicy           `json:"imagePullPolicy,omitempty"`
+		ServiceAccountName string                      `json:"serviceAccountName,omitempty"`
 	}{
 		Image:              llm.Spec.Image,
 		Model:              llm.Spec.Model,

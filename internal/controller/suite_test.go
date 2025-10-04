@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	gelimerv1alpha1 "zzzinho.busan/api/v1alpha1"
+	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -59,7 +59,7 @@ var _ = BeforeSuite(func() {
 	ctx, cancel = context.WithCancel(context.TODO())
 
 	var err error
-	err = gelimerv1alpha1.AddToScheme(scheme.Scheme)
+	err = llmv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme

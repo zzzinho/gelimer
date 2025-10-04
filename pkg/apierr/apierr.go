@@ -26,23 +26,23 @@ type ErrorCode string
 
 // Predefined error codes
 const (
-	ErrInvalidRequest    ErrorCode = "INVALID_REQUEST"
-	ErrUnauthorized      ErrorCode = "UNAUTHORIZED"
-	ErrForbidden         ErrorCode = "FORBIDDEN"
-	ErrNotFound          ErrorCode = "NOT_FOUND"
-	ErrConflict          ErrorCode = "CONFLICT"
-	ErrInternalError     ErrorCode = "INTERNAL_ERROR"
+	ErrInvalidRequest     ErrorCode = "INVALID_REQUEST"
+	ErrUnauthorized       ErrorCode = "UNAUTHORIZED"
+	ErrForbidden          ErrorCode = "FORBIDDEN"
+	ErrNotFound           ErrorCode = "NOT_FOUND"
+	ErrConflict           ErrorCode = "CONFLICT"
+	ErrInternalError      ErrorCode = "INTERNAL_ERROR"
 	ErrServiceUnavailable ErrorCode = "SERVICE_UNAVAILABLE"
-	ErrBadGateway        ErrorCode = "BAD_GATEWAY"
-	ErrTimeout           ErrorCode = "TIMEOUT"
-	ErrTooManyRequests   ErrorCode = "TOO_MANY_REQUESTS"
+	ErrBadGateway         ErrorCode = "BAD_GATEWAY"
+	ErrTimeout            ErrorCode = "TIMEOUT"
+	ErrTooManyRequests    ErrorCode = "TOO_MANY_REQUESTS"
 )
 
 // APIError represents a structured API error
 type APIError struct {
-	code       ErrorCode `json:"code"`
-	message    string    `json:"message"`
-	statusCode int       `json:"-"`
+	code       ErrorCode
+	message    string
+	statusCode int
 }
 
 // Error implements the error interface
@@ -65,19 +65,18 @@ func (e *APIError) Message() string {
 	return e.message
 }
 
-
 // Predefined API errors - users cannot create new ones
 var (
-	InvalidRequest    = &APIError{ErrInvalidRequest, "Invalid request", http.StatusBadRequest}
-	Unauthorized      = &APIError{ErrUnauthorized, "Unauthorized access", http.StatusUnauthorized}
-	Forbidden         = &APIError{ErrForbidden, "Access forbidden", http.StatusForbidden}
-	NotFound          = &APIError{ErrNotFound, "Resource not found", http.StatusNotFound}
-	Conflict          = &APIError{ErrConflict, "Resource conflict", http.StatusConflict}
-	InternalError     = &APIError{ErrInternalError, "Internal server error", http.StatusInternalServerError}
+	InvalidRequest     = &APIError{ErrInvalidRequest, "Invalid request", http.StatusBadRequest}
+	Unauthorized       = &APIError{ErrUnauthorized, "Unauthorized access", http.StatusUnauthorized}
+	Forbidden          = &APIError{ErrForbidden, "Access forbidden", http.StatusForbidden}
+	NotFound           = &APIError{ErrNotFound, "Resource not found", http.StatusNotFound}
+	Conflict           = &APIError{ErrConflict, "Resource conflict", http.StatusConflict}
+	InternalError      = &APIError{ErrInternalError, "Internal server error", http.StatusInternalServerError}
 	ServiceUnavailable = &APIError{ErrServiceUnavailable, "Service unavailable", http.StatusServiceUnavailable}
-	BadGateway        = &APIError{ErrBadGateway, "Bad gateway", http.StatusBadGateway}
-	Timeout           = &APIError{ErrTimeout, "Request timeout", http.StatusRequestTimeout}
-	TooManyRequests   = &APIError{ErrTooManyRequests, "Too many requests", http.StatusTooManyRequests}
+	BadGateway         = &APIError{ErrBadGateway, "Bad gateway", http.StatusBadGateway}
+	Timeout            = &APIError{ErrTimeout, "Request timeout", http.StatusRequestTimeout}
+	TooManyRequests    = &APIError{ErrTooManyRequests, "Too many requests", http.StatusTooManyRequests}
 )
 
 // WithMessage returns a copy of the error with a custom message

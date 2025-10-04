@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	gelimerv1alpha1 "zzzinho.busan/api/v1alpha1"
+	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
 	reconciler "zzzinho.busan/internal/controller/llm"
 )
 
@@ -62,7 +62,7 @@ func (r *GelimerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := logf.FromContext(ctx)
 	logger.Info("Reconciling LLM")
 
-	llm := &gelimerv1alpha1.LLM{}
+	llm := &llmv1alpha1.LLM{}
 	if err := r.Get(ctx, req.NamespacedName, llm); err == nil {
 		logger.Info("Reconciling LLM", "name", llm.Name, "namespace", llm.Namespace)
 		return r.llmReconciler.Reconcile(ctx, llm)
@@ -73,7 +73,7 @@ func (r *GelimerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager sets up the controller with the Manager.
 func (r *GelimerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&gelimerv1alpha1.LLM{}).
+		For(&llmv1alpha1.LLM{}).
 		Named("llm").
 		Complete(r)
 }

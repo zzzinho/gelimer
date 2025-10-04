@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: llms.gelimer.zzzinho.busan
+  name: llms.llm.gelimer.zzzinho.busan
 spec:
-  group: gelimer.zzzinho.busan
+  group: llm.gelimer.zzzinho.busan
   names:
     kind: LLM
     listKind: LLMList
