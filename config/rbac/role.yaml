@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - gelimer.zzzinho.busan
+  resources:
+  - llms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - gelimer.zzzinho.busan
+  resources:
+  - llms/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - gelimer.zzzinho.busan
+  resources:
+  - llms/status
+  verbs:
+  - get
+  - patch
+  - update

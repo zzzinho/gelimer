@@ -1,0 +1,49 @@
+apiVersion: gelimer.zzzinho.busan/v1alpha1
+kind: LLM
+metadata:
+  labels:
+    app.kubernetes.io/name: gelimer
+    app.kubernetes.io/managed-by: kustomize
+  name: llm-sample
+spec:
+  model: "google/gemma-3-270m"
+  runtime: vLLM
+  replicas: 1
+  image: "vllm/vllm-openai:latest"
+  imagePullPolicy: IfNotPresent
+  port: 8000
+  resources:
+    limits:
+      cpu: "4"
+      memory: "16Gi"
+      nvidia.com/gpu: "1"
+    requests:
+      cpu: "2"
+      memory: "8Gi"
+      nvidia.com/gpu: "1"
+  runtimeConfig:
+    vLLM:
+      # vLLM 실행 인수 (선택적)
+      args:
+        - "--trust-remote-code"
+        - "--max-model-len"
+        - "4096"
+        - "--tensor-parallel-size"
+        - "1"
+        - "--gpu-memory-utilization"
+        - "0.9"
+        - "--block-size"
+        - "16"
+
+  env:
+    - name: HF_TOKEN
+      value: "your-huggingface-token"
+
+  volumeMounts:
+    - name: model-cache
+      mountPath: /root/.cache/huggingface
+      readOnly: false
+
+  volumes:
+    - name: model-cache
+      emptyDir: {}
