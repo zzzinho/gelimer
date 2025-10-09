@@ -18,19 +18,21 @@ package llm
 
 import (
 	"context"
+	"gelimer"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
+	llmv1alpha1 "gelimer/api/llm/v1alpha1"
+	"gelimer/internal/controller"
 )
-
 type LLMController struct {
 	client.Client
 	Scheme        *runtime.Scheme
-	llmReconciler *LLMReconciler
+	llmReconciler controller.Reconciler
 }
 
 func New(c client.Client, scheme *runtime.Scheme) *LLMController {
@@ -64,7 +66,20 @@ func (r *LLMController) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	llm := &llmv1alpha1.LLM{}
 	if err := r.Get(ctx, req.NamespacedName, llm); err == nil {
 		logger.Info("Reconciling LLM", "name", llm.Name, "namespace", llm.Namespace)
-		return r.llmReconciler.Do(ctx, llm)
+
+		status, err := r.llmReconciler.Do(ctx, llm)
+
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		switch status {
+		case gelimer.InProgress:
+			return ctrl.Result{Requeue: true}, nil
+		case gelimer.FinalizerAdded:
+			return ctrl.Result{Requeue: true}, nil
+		default:
+			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, err
+		}
 	}
 	return ctrl.Result{}, nil
 }

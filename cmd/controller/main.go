@@ -37,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
-	llmcontroller "zzzinho.busan/internal/controller/llm"
+	llmv1alpha1 "gelimer/api/llm/v1alpha1"
+	llmcontroller "gelimer/internal/controller/llm"
 	// +kubebuilder:scaffold:imports
 )
 

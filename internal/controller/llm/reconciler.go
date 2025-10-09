@@ -7,17 +7,18 @@ import (
 	"fmt"
 	"strconv"
 
+	"gelimer"
+	llmv1alpha1 "gelimer/api/llm/v1alpha1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
 )
 
 const (
@@ -30,7 +31,12 @@ type LLMReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-func (r *LLMReconciler) Do(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
+func (r *LLMReconciler) Do(ctx context.Context, obj client.Object) (string, error) {
+	llm, ok := obj.(*llmv1alpha1.LLM)
+	if !ok {
+		return "", fmt.Errorf("object is not a LLM: %w", gelimer.ErrPermanent)
+	}
+
 	logr := logf.FromContext(ctx)
 	logr.Info("Reconciling LLM", "name", llm.Name)
 
@@ -38,11 +44,11 @@ func (r *LLMReconciler) Do(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Resu
 	case llmv1alpha1.RuntimeTypeVLLM:
 		return r.handleVLLM(ctx, llm)
 	default:
-		return ctrl.Result{}, fmt.Errorf("unknown runtime: %s", llm.Spec.Runtime)
+		return "", fmt.Errorf("unknown runtime: %s", llm.Spec.Runtime)
 	}
 }
 
-func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (ctrl.Result, error) {
+func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (string, error) {
 	log := logf.FromContext(ctx)
 
 	// Handle deletion with finalizer
@@ -52,23 +58,23 @@ func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (c
 
 			if err := r.updateStatus(ctx, llm, "Deleting", "Deleting LLM resources"); err != nil {
 				log.Error(err, "failed to update LLM status")
-				return ctrl.Result{}, err
+				return "", err
 			}
 
 			if err := r.cleanupResources(ctx, llm); err != nil {
 				log.Error(err, "failed to cleanup resources")
-				return ctrl.Result{}, err
+				return "", err
 			}
 
 			// Remove finalizer to allow deletion
 			controllerutil.RemoveFinalizer(llm, llmFinalizerName)
 			if err := r.Update(ctx, llm); err != nil {
 				log.Error(err, "failed to remove finalizer")
-				return ctrl.Result{}, err
+				return "", err
 			}
 			log.Info("Successfully cleaned up LLM resources", "namespace", llm.Namespace, "name", llm.Name)
 		}
-		return ctrl.Result{}, nil
+		return "", nil
 	}
 
 	// Add finalizer if not present
@@ -76,17 +82,17 @@ func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (c
 		controllerutil.AddFinalizer(llm, llmFinalizerName)
 		if err := r.Update(ctx, llm); err != nil {
 			log.Error(err, "failed to add finalizer")
-			return ctrl.Result{}, err
+			return "", err
 		}
 		log.Info("Added finalizer to LLM", "namespace", llm.Namespace, "name", llm.Name)
-		return ctrl.Result{Requeue: true}, nil
+		return gelimer.FinalizerAdded, nil
 	}
 
 	// Initialize status if empty
 	if llm.Status.Status == "" {
 		if err := r.updateStatus(ctx, llm, "Pending", "Initializing LLM resources"); err != nil {
 			log.Error(err, "failed to update LLM status")
-			return ctrl.Result{}, err
+			return "", err
 		}
 	}
 
@@ -97,10 +103,10 @@ func (r *LLMReconciler) handleVLLM(ctx context.Context, llm *llmv1alpha1.LLM) (c
 		if statusErr := r.updateStatus(ctx, llm, "Error", fmt.Sprintf("Failed to create/update resources: %v", err)); statusErr != nil {
 			log.Error(statusErr, "failed to update error status")
 		}
-		return ctrl.Result{}, err
+		return "", err
 	}
 
-	return ctrl.Result{}, nil
+	return "", nil
 }
 
 func (r *LLMReconciler) createOrUpdateResources(ctx context.Context, llm *llmv1alpha1.LLM) error {

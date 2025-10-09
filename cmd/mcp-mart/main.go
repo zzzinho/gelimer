@@ -26,8 +26,8 @@ import (
 	"syscall"
 	"time"
 
-	"zzzinho.busan/pkg/apierr"
-	"zzzinho.busan/pkg/rest"
+	"gelimer/pkg/apierr"
+	"gelimer/pkg/rest"
 )
 
 func main() {

@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	llmv1alpha1 "zzzinho.busan/api/llm/v1alpha1"
+	llmv1alpha1 "gelimer/api/llm/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
